@@ -120,5 +120,16 @@ namespace NdefLibrary.Ndef
             if (record.Type == null) return false;
             return (record.TypeNameFormat == TypeNameFormatType.ExternalRtd && record.Type.SequenceEqual(AndroidAppRecordType));
         }
+
+	    /// <summary>
+	    /// Gets a string representation for the NDEF Record payload. 
+	    /// </summary>
+	    /// <returns>
+	    /// A string that represents the current object.
+	    /// </returns>
+	    public override string ToString()
+	    {
+		    return PackageName;
+	    }
     }
 }
