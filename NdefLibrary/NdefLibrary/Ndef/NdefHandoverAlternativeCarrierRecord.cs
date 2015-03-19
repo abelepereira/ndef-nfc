@@ -348,5 +348,22 @@ namespace NdefLibrary.Ndef
                    record.Type.SequenceEqual(BtAcType) &&
                    record.Payload != null;
         }
+
+
+		/// <summary>
+		/// Gets a string representation for the NDEF Record payload. 
+		/// </summary>
+		/// <returns>
+		/// A string that represents the current object.
+		/// </returns>
+		public override string ToString()
+		{
+			if (Payload != null && Payload.Length > 0)
+			{
+				return Encoding.UTF8.GetString(Payload, 0, Payload.Length);
+			}
+
+			return string.Empty;
+		}
     }
 }
