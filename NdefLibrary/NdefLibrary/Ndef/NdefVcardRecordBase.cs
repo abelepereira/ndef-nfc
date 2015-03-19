@@ -87,5 +87,21 @@ namespace NdefLibrary.Ndef
             if (record.Type == null) return false;
             return (record.TypeNameFormat == TypeNameFormatType.Mime && record.Type.SequenceEqual(VcardType));
         }
+
+		/// <summary>
+		/// Gets a string representation for the NDEF Record payload. 
+		/// </summary>
+		/// <returns>
+		/// A string that represents the current object.
+		/// </returns>
+		public override string ToString()
+		{
+			if (Payload != null && Payload.Length > 0)
+			{
+				return Encoding.UTF8.GetString(Payload, 0, Payload.Length);
+			}
+
+			return string.Empty;
+		}
     }
 }
