@@ -80,5 +80,16 @@ namespace NdefLibrary.Ndef
             get { return HasSpData() ? base.Payload : RecordUri.Payload; }
         }
 
+		/// <summary>
+		/// Gets a string representation for the NDEF Record payload. 
+		/// </summary>
+		/// <returns>
+		/// A string that represents the current object.
+		/// </returns>
+		public override string ToString()
+		{
+			return Uri;
+		}
+
     }
 }
