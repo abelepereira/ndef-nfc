@@ -56,7 +56,6 @@ namespace NdefLibrary.Ndef
 		///         var tnf = (byte)flags & 0x7;
 		///     </c>
 		/// </remarks>
-
 		/// <summary>
 		///     Standardized type name formats, as defined by the NDEF record
 		///     specification from the Nfc Forum.
@@ -183,12 +182,12 @@ namespace NdefLibrary.Ndef
 		}
 
 		/// <summary>
-		///  Represents the record header flags corresponding to the first byte of each message record.
+		///     Represents the record header flags corresponding to the first byte of each message record.
 		/// </summary>
 		public NdefRecordFlags Flags
 		{
 			get { return (NdefRecordFlags) _flags; }
-			internal set { _flags = (byte)value; }
+			internal set { _flags = (byte) value; }
 		}
 
 		/// <summary>
@@ -368,6 +367,25 @@ namespace NdefLibrary.Ndef
 			if (TypeNameFormat == TypeNameFormatType.Unchanged && !(Id == null || Id.Length == 0))
 				throw new NdefException(NdefExceptionMessages.ExRecordUnchangedId);
 			return true;
+		}
+
+		/// <summary>
+		///     Gets a string representation for the NDEF Record payload. It the record is not a well known record it returns this
+		///     object type name.
+		/// </summary>
+		/// <returns>
+		///     A string that represents the current object.
+		/// </returns>
+		public override string ToString()
+		{
+			var type = CheckSpecializedType(true);
+			if (type != null)
+			{
+				var typedNdefRecord = Activator.CreateInstance(type);
+				return typedNdefRecord.ToString();
+			}
+
+			return base.ToString();
 		}
 	}
 }
