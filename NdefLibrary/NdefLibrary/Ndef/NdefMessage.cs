@@ -78,8 +78,11 @@ namespace NdefLibrary.Ndef
         {
             var result = new NdefMessage();
 
-            var seenMessageBegin = false;
-            var seenMessageEnd = false;
+			// explanation: removed this because it doesn't comply with the standard. 
+			// Although most of platforms don't support multiple records on a message this is actully possible.
+			// Threfore header flags must be validated per record and not per message.
+			//var seenMessageBegin = false;
+			//var seenMessageEnd = false;
 
             var partialChunk = new MemoryStream();
             var record = new NdefRecord();
@@ -91,46 +94,52 @@ namespace NdefLibrary.Ndef
 
                 // Parse flags out of NDEF message header
 
+	            var flags = (NdefRecordFlags)message[i];
+
+				record.Flags = flags;
+
                 // The MB flag is a 1-bit field that when set indicates the start of an NDEF message.
-                bool messageBegin = (message[i] & 0x80) != 0;
+	            bool recordBegin = flags.HasFlag(NdefRecordFlags.MessageBegin); //(message[i] & 0x80) != 0;
                 // The ME flag is a 1-bit field that when set indicates the end of an NDEF message.
                 // Note, that in case of a chunked payload, the ME flag is set only in the terminating record chunk of that chunked payload.
-                bool messageEnd = (message[i] & 0x40) != 0;
+	            bool recordEnd = flags.HasFlag(NdefRecordFlags.MessageEnd); //(message[i] & 0x40) != 0;
                 // The CF flag is a 1-bit field indicating that this is either the first record chunk or a middle record chunk of a chunked payload.
-                bool cf = (message[i] & 0x20) != 0;
+	            bool cf = flags.HasFlag(NdefRecordFlags.ChunkFlag); // (message[i] & 0x20) != 0;
                 // The SR flag is a 1-bit field indicating, if set, that the PAYLOAD_LENGTH field is a single octet.
-                bool sr = (message[i] & 0x10) != 0;
+	            bool sr = flags.HasFlag(NdefRecordFlags.ShortRecord); // (message[i] & 0x10) != 0;
                 // The IL flag is a 1-bit field indicating, if set, that the ID_LENGTH field is present in the header as a single octet. 
                 // If the IL flag is zero, the ID_LENGTH field is omitted from the record header and the ID field is also omitted from the record.
-                bool il = (message[i] & 0x08) != 0;
+	            bool il = flags.HasFlag(NdefRecordFlags.IdLength); // (message[i] & 0x08) != 0;
+
                 var typeNameFormat = (NdefRecord.TypeNameFormatType)(message[i] & 0x07);
 
                 //Debug.WriteLine("ShortRecord: " + (sr ? "yes" : "no"));
                 //Debug.WriteLine("Id Length present: " + (il ? "yes" : "no"));
 
-                if (messageBegin && seenMessageBegin)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageBeginLate);
-                }
-                else if (!messageBegin && !seenMessageBegin)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageBeginMissing);
-                }
-                else if (messageBegin && !seenMessageBegin)
-                {
-                    seenMessageBegin = true;
-                }
+				//TODO: validation must be per record not per message. Implementation is required
+				//if (recordBegin && seenMessageBegin)
+				//{
+				//	throw new NdefException(NdefExceptionMessages.ExMessageBeginLate);
+				//}
+				//if (!recordBegin && !seenMessageBegin)
+				//{
+				//	throw new NdefException(NdefExceptionMessages.ExMessageBeginMissing);
+				//}
+				//if (recordBegin)
+				//{
+				//	seenMessageBegin = true;
+				//}
 
-                if (messageEnd && seenMessageEnd)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageEndLate);
-                }
-                else if (messageEnd && !seenMessageEnd)
-                {
-                    seenMessageEnd = true;
-                }
+				//if (recordEnd && seenMessageEnd)
+				//{
+				//	throw new NdefException(NdefExceptionMessages.ExMessageEndLate);
+				//}
+				//if (recordEnd)
+				//{
+				//	seenMessageEnd = true;
+				//}
 
-                if (cf && (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged) && partialChunk.Length > 0)
+	            if (cf && (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged) && partialChunk.Length > 0)
                 {
                     throw new NdefException(NdefExceptionMessages.ExMessagePartialChunk);
                 }
@@ -240,7 +249,7 @@ namespace NdefLibrary.Ndef
                     record = new NdefRecord();
                 }
 
-                if (!cf && seenMessageEnd)
+                if (!cf && flags.HasFlag(NdefRecordFlags.MessageEnd))
                     break;
 
                 // move to start of next record
@@ -248,10 +257,11 @@ namespace NdefLibrary.Ndef
             }
 
 
-            if (!seenMessageBegin && !seenMessageEnd)
-            {
-                throw new NdefException(NdefExceptionMessages.ExMessageNoBeginOrEnd);
-            }
+			//Note: see note above
+			//if (!seenMessageBegin && !seenMessageEnd)
+			//{
+			//	throw new NdefException(NdefExceptionMessages.ExMessageNoBeginOrEnd);
+			//}
 
             return result;
         }
