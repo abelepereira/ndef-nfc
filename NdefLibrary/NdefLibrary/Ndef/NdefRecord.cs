@@ -384,7 +384,11 @@ namespace NdefLibrary.Ndef
 				var typedNdefRecord = Activator.CreateInstance(type);
 				return typedNdefRecord.ToString();
 			}
-
+			if (Payload != null && Payload.Length > 0)
+			{
+				return System.Text.Encoding.UTF8.GetString(Payload, 0, Payload.Length);
+			}
+			
 			return base.ToString();
 		}
 	}
