@@ -381,7 +381,7 @@ namespace NdefLibrary.Ndef
 			var type = CheckSpecializedType(true);
 			if (type != null)
 			{
-				var typedNdefRecord = Activator.CreateInstance(type);
+				var typedNdefRecord = Activator.CreateInstance(type, this);
 				return typedNdefRecord.ToString();
 			}
 			if (Payload != null && Payload.Length > 0)
