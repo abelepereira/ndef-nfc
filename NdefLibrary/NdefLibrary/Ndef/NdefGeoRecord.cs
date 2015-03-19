@@ -285,5 +285,16 @@ namespace NdefLibrary.Ndef
 
             return true;
         }
+
+	    /// <summary>
+		/// Gets a string representation for the NDEF Record payload. 
+	    /// </summary>
+	    /// <returns>
+	    /// A string that represents the current object.
+	    /// </returns>
+	    public override string ToString()
+	    {
+		    return Uri;
+	    }
     }
 }
