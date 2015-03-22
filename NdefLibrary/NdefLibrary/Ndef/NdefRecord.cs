@@ -136,6 +136,8 @@ namespace NdefLibrary.Ndef
 		/// </summary>
 		public NdefRecord()
 		{
+			_type = new byte[] {}; // make proper initialization to be consistent with Empty records
+			_payload = new byte[] {}; // make proper initialization to be consistent with Empty records
 			TypeNameFormat = TypeNameFormatType.Empty;
 		}
 
@@ -205,7 +207,7 @@ namespace NdefLibrary.Ndef
 			{
 				if (value == null)
 				{
-					_type = null;
+					_type = new byte[] {};
 					return;
 				}
 				_type = new byte[value.Length];
@@ -241,7 +243,8 @@ namespace NdefLibrary.Ndef
 			{
 				if (value == null)
 				{
-					_payload = null;
+					_payload = new byte[] {};
+					;
 					return;
 				}
 				_payload = new byte[value.Length];
@@ -300,8 +303,8 @@ namespace NdefLibrary.Ndef
 				return typeof (NdefLaunchAppRecord);
 			if (NdefAndroidAppRecord.IsRecordType(this))
 				return typeof (NdefAndroidAppRecord);
-			if (NdefVcardRecordBase.IsRecordType(this))
-				return typeof (NdefVcardRecordBase);
+			if (NdefVcardRecord.IsRecordType(this))
+				return typeof (NdefVcardRecord);
 			if (NdefIcalendarRecordBase.IsRecordType(this))
 				return typeof (NdefIcalendarRecordBase);
 			if (NdefBtSecureSimplePairingRecord.IsRecordType(this))
@@ -379,7 +382,7 @@ namespace NdefLibrary.Ndef
 		public override string ToString()
 		{
 			var type = CheckSpecializedType(true);
-			if (type != null)
+			if (type != null && type != typeof (NdefRecord)) // prevent recursivity
 			{
 				var typedNdefRecord = Activator.CreateInstance(type, this);
 				return typedNdefRecord.ToString();
@@ -388,8 +391,8 @@ namespace NdefLibrary.Ndef
 			{
 				return System.Text.Encoding.UTF8.GetString(Payload, 0, Payload.Length);
 			}
-			
-			return base.ToString();
+
+			return string.Empty;
 		}
 	}
 }

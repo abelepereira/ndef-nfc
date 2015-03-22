@@ -27,6 +27,7 @@
 ****************************************************************************/
 using System.Linq;
 using System.Text;
+using VcardLibrary;
 
 namespace NdefLibrary.Ndef
 {
@@ -41,17 +42,17 @@ namespace NdefLibrary.Ndef
     /// import / export a contact from the address book, use the derived classes
     /// in the NDEF Extension Library.
     /// </remarks>
-    public class NdefVcardRecordBase : NdefRecord
+    public class NdefVcardRecord : NdefRecord
     {
         /// <summary>
         /// Type of the NDEF MIME / vCard record.
         /// </summary>
-        public static readonly byte[] VcardType = Encoding.UTF8.GetBytes("text/x-vCard");
+		public static readonly byte[] VcardType = Encoding.UTF8.GetBytes("text/vcard"); //according to vcard 4.0 spec
         
         /// <summary>
         /// Create an empty MIME/vCard Record.
         /// </summary>
-        public NdefVcardRecordBase()
+        public NdefVcardRecord()
             : base(TypeNameFormatType.Mime, VcardType)
         {
         }
@@ -67,12 +68,14 @@ namespace NdefLibrary.Ndef
         /// <param name="other">Record to copy into this vCard record.</param>
         /// <exception cref="NdefException">Thrown if attempting to create a vCard record
         /// based on an incompatible record type.</exception>
-        public NdefVcardRecordBase(NdefRecord other)
+        public NdefVcardRecord(NdefRecord other)
             : base(other)
         {
             if (!IsRecordType(this))
                 throw new NdefException(NdefExceptionMessages.ExInvalidCopy);
         }
+
+	    public vCard VCard { get; set; }
 
         /// <summary>
         /// Checks if the record sent via the parameter is indeed a MIME/vCard record.

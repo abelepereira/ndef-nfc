@@ -36,43 +36,24 @@ namespace VcardLibrary
     /// </remarks>
     public class vCard
     {
-
-        private vCardAccessClassification accessClassification;
-        private string additionalNames;
-        private DateTime? birthDate;
-        private ICollection<string> categories;
-        private string department;
+	    private string additionalNames;
+	    private string department;
         private string displayName;
         private string familyName;
         private string formattedName;
-        private vCardGender gender;
-        private string givenName;
-        private float? latitude;
-        private float? longitude;
-        private string mailer;
+	    private string givenName;
+	    private string mailer;
         private string namePrefix;
         private string nameSuffix;
-        private ICollection<string> nicknames;
-        private string office;
+	    private string office;
         private string organization;
         private string productId;
-        private DateTime? revisionDate;
-        private string role;
+	    private string role;
         private string timeZone;
         private string title;
         private string uniqueId;
 
-        private vCardCertificateCollection certificates;
-        private vCardDeliveryAddressCollection deliveryAddresses;
-        private vCardDeliveryLabelCollection deliveryLabels;
-        private vCardEmailAddressCollection emailAddresses;
-        private vCardNoteCollection notes;
-        private vCardPhoneCollection phones;
-        private vCardPhotoCollection photos;
-        private vCardSourceCollection sources;
-        private vCardWebsiteCollection websites;
-
-        /// <summary>
+	    /// <summary>
         ///     Initializes a new instance of the <see cref="vCard"/> class.
         /// </summary>
         public vCard()
@@ -82,34 +63,34 @@ namespace VcardLibrary
             // never return null.  String properties should always
             // return String.Empty.
 
-            this.additionalNames = string.Empty;
-            this.department = string.Empty;
-            this.displayName = string.Empty;
-            this.familyName = string.Empty;
-            this.formattedName = string.Empty;
-            this.givenName = string.Empty;
-            this.mailer = string.Empty;
-            this.namePrefix = string.Empty;
-            this.nameSuffix = string.Empty;
-            this.office = string.Empty;
-            this.organization = string.Empty;
-            this.productId = string.Empty;
-            this.role = string.Empty;
-            this.timeZone = string.Empty;
-            this.title = string.Empty;
-            this.uniqueId = string.Empty;
+            additionalNames = string.Empty;
+            department = string.Empty;
+            displayName = string.Empty;
+            familyName = string.Empty;
+            formattedName = string.Empty;
+            givenName = string.Empty;
+            mailer = string.Empty;
+            namePrefix = string.Empty;
+            nameSuffix = string.Empty;
+            office = string.Empty;
+            organization = string.Empty;
+            productId = string.Empty;
+            role = string.Empty;
+            timeZone = string.Empty;
+            title = string.Empty;
+            uniqueId = string.Empty;
 
-            this.categories = new List<string>();
-            this.certificates = new vCardCertificateCollection();
-            this.deliveryAddresses = new vCardDeliveryAddressCollection();
-            this.deliveryLabels = new vCardDeliveryLabelCollection();
-            this.emailAddresses = new vCardEmailAddressCollection();
-            this.nicknames = new List<string>();
-            this.notes = new vCardNoteCollection();
-            this.phones = new vCardPhoneCollection();
-            this.photos = new vCardPhotoCollection();
-            this.sources = new vCardSourceCollection();
-            this.websites = new vCardWebsiteCollection();
+            Categories = new List<string>();
+            Certificates = new vCardCertificateCollection();
+            DeliveryAddresses = new vCardDeliveryAddressCollection();
+            DeliveryLabels = new vCardDeliveryLabelCollection();
+            EmailAddresses = new vCardEmailAddressCollection();
+            Nicknames = new List<string>();
+            Notes = new vCardNoteCollection();
+            Phones = new vCardPhoneCollection();
+            Photos = new vCardPhotoCollection();
+            Sources = new vCardSourceCollection();
+            Websites = new vCardWebsiteCollection();
         }
 
 
@@ -153,20 +134,10 @@ namespace VcardLibrary
         /// <summary>
         ///     The security access classification of the vCard owner (e.g. private).
         /// </summary>
-        public vCardAccessClassification AccessClassification
-        {
-            get
-            {
-                return this.accessClassification;
-            }
-            set
-            {
-                this.accessClassification = value;
-            }
-        }
+        public vCardAccessClassification AccessClassification { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     Any additional (e.g. middle) names of the person.
         /// </summary>
         /// <seealso cref="FamilyName"/>
@@ -177,11 +148,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.additionalNames ?? string.Empty;
+                return additionalNames ?? string.Empty;
             }
             set
             {
-                this.additionalNames = value;
+                additionalNames = value;
             }
         }
 
@@ -189,73 +160,39 @@ namespace VcardLibrary
         /// <summary>
         ///     The birthdate of the person.
         /// </summary>
-        public DateTime? BirthDate
-        {
-            get
-            {
-                return this.birthDate;
-            }
-            set
-            {
-                this.birthDate = value;
-            }
-        }
+        public DateTime? BirthDate { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     Categories of the vCard.
         /// </summary>
         /// <remarks>
         ///     This property is a collection of strings containing
         ///     keywords or category names.
         /// </remarks>
-        public ICollection<string> Categories
-        {
-            get
-            {
-                return this.categories;
-            }
-        }
+        public ICollection<string> Categories { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     Public key certificates attached to the vCard.
         /// </summary>
         /// <seealso cref="vCardCertificate"/>
-        public vCardCertificateCollection Certificates
-        {
-            get
-            {
-                return this.certificates;
-            }
-        }
+        public vCardCertificateCollection Certificates { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     Delivery addresses associated with the person.
         /// </summary>
-        public vCardDeliveryAddressCollection DeliveryAddresses
-        {
-            get
-            {
-                return this.deliveryAddresses;
-            }
-        }
+        public vCardDeliveryAddressCollection DeliveryAddresses { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     Formatted delivery labels.
         /// </summary>
-        public vCardDeliveryLabelCollection DeliveryLabels
-        {
-            get
-            {
-                return this.deliveryLabels;
-            }
-        }
+        public vCardDeliveryLabelCollection DeliveryLabels { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The department of the person in the organization.
         /// </summary>
         /// <seealso cref="Office"/>
@@ -264,11 +201,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.department ?? string.Empty;
+                return department ?? string.Empty;
             }
             set
             {
-                this.department = value;
+                department = value;
             }
         }
 
@@ -284,11 +221,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.displayName ?? string.Empty;
+                return displayName ?? string.Empty;
             }
             set
             {
-                this.displayName = value;
+                displayName = value;
             }
         }
 
@@ -297,16 +234,10 @@ namespace VcardLibrary
         ///     A collection of <see cref="vCardEmailAddress"/> objects for the person.
         /// </summary>
         /// <seealso cref="vCardEmailAddress"/>
-        public vCardEmailAddressCollection EmailAddresses
-        {
-            get
-            {
-                return this.emailAddresses;
-            }
-        }
+        public vCardEmailAddressCollection EmailAddresses { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The family (last) name of the person.
         /// </summary>
         /// <seealso cref="AdditionalNames"/>
@@ -317,11 +248,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.familyName ?? string.Empty;
+                return familyName ?? string.Empty;
             }
             set
             {
-                this.familyName = value;
+                familyName = value;
             }
         }
 
@@ -343,11 +274,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.formattedName ?? string.Empty;
+                return formattedName ?? string.Empty;
             }
             set
             {
-                this.formattedName = value;
+                formattedName = value;
             }
         }
 
@@ -362,20 +293,10 @@ namespace VcardLibrary
         ///     X-WAB-GENDER.
         /// </remarks>
         /// <seealso cref="vCardGender"/>
-        public vCardGender Gender
-        {
-            get
-            {
-                return this.gender;
-            }
-            set
-            {
-                this.gender = value;
-            }
-        }
+        public vCardGender Gender { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The given (first) name of the person.
         /// </summary>
         /// <seealso cref="AdditionalNames"/>
@@ -386,11 +307,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.givenName ?? string.Empty;
+                return givenName ?? string.Empty;
             }
             set
             {
-                this.givenName = value;
+                givenName = value;
             }
         }
 
@@ -399,48 +320,28 @@ namespace VcardLibrary
         ///     The latitude of the person in decimal degrees.
         /// </summary>
         /// <seealso cref="Longitude"/>
-        public float? Latitude
-        {
-            get
-            {
-                return this.latitude;
-            }
-            set
-            {
-                this.latitude = value;
-            }
-        }
+        public float? Latitude { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The longitude of the person in decimal degrees.
         /// </summary>
         /// <seealso cref="Latitude"/>
-        public float? Longitude
-        {
-            get
-            {
-                return this.longitude;
-            }
-            set
-            {
-                this.longitude = value;
-            }
-        }
+        public float? Longitude { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The mail software used by the person.
         /// </summary>
         public string Mailer
         {
             get
             {
-                return this.mailer ?? string.Empty;
+                return mailer ?? string.Empty;
             }
             set
             {
-                this.mailer = value;
+                mailer = value;
             }
         }
 
@@ -453,11 +354,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.namePrefix ?? string.Empty;
+                return namePrefix ?? string.Empty;
             }
             set
             {
-                this.namePrefix = value;
+                namePrefix = value;
             }
         }
 
@@ -470,11 +371,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.nameSuffix ?? string.Empty;
+                return nameSuffix ?? string.Empty;
             }
             set
             {
-                this.nameSuffix = value;
+                nameSuffix = value;
             }
         }
 
@@ -486,28 +387,16 @@ namespace VcardLibrary
         /// <seealso cref="FamilyName"/>
         /// <seealso cref="FormattedName"/>
         /// <seealso cref="GivenName"/>
-        public ICollection<string> Nicknames
-        {
-            get
-            {
-                return this.nicknames;
-            }
-        }
+        public ICollection<string> Nicknames { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     A collection of notes or comments.
         /// </summary>
-        public vCardNoteCollection Notes
-        {
-            get
-            {
-                return this.notes;
-            }
-        }
+        public vCardNoteCollection Notes { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The office of the person at the organization.
         /// </summary>
         /// <seealso cref="Department"/>
@@ -516,11 +405,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.office ?? string.Empty;
+                return office ?? string.Empty;
             }
             set
             {
-                this.office = value;
+                office = value;
             }
         }
 
@@ -535,11 +424,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.organization ?? string.Empty;
+                return organization ?? string.Empty;
             }
             set
             {
-                this.organization = value;
+                organization = value;
             }
         }
 
@@ -547,40 +436,28 @@ namespace VcardLibrary
         /// <summary>
         ///     A collection of telephone numbers.
         /// </summary>
-        public vCardPhoneCollection Phones
-        {
-            get
-            {
-                return this.phones;
-            }
-        }
+        public vCardPhoneCollection Phones { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     A collection of photographic images embedded or 
         ///     referenced by the vCard.
         /// </summary>
-        public vCardPhotoCollection Photos
-        {
-            get
-            {
-                return this.photos;
-            }
-        }
+        public vCardPhotoCollection Photos { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The name of the product that generated the vCard.
         /// </summary>
         public string ProductId
         {
             get
             {
-                return this.productId ?? string.Empty;
+                return productId ?? string.Empty;
             }
             set
             {
-                this.productId = value;
+                productId = value;
             }
         }
 
@@ -593,20 +470,10 @@ namespace VcardLibrary
         ///     vCard when modifying properties.  It is up to the 
         ///     developer to change the revision date as needed.
         /// </remarks>
-        public DateTime? RevisionDate
-        {
-            get
-            {
-                return this.revisionDate;
-            }
-            set
-            {
-                this.revisionDate = value;
-            }
-        }
+        public DateTime? RevisionDate { get; set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     The role of the person (e.g. Executive).
         /// </summary>
         /// <remarks>
@@ -620,11 +487,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.role ?? string.Empty;
+                return role ?? string.Empty;
             }
             set
             {
-                this.role = value;
+                role = value;
             }
         }
 
@@ -639,16 +506,10 @@ namespace VcardLibrary
         ///     hypothetically connect to the source in order to
         ///     obtain updated information.
         /// </remarks>
-        public vCardSourceCollection Sources
-        {
-            get
-            {
-                return this.sources;
-            }
-        }
+        public vCardSourceCollection Sources { get; private set; }
 
 
-        /// <summary>
+	    /// <summary>
         ///     A string identifying the time zone of the entity
         ///     represented by the vCard.
         /// </summary>
@@ -656,11 +517,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.timeZone ?? string.Empty;
+                return timeZone ?? string.Empty;
             }
             set
             {
-                this.timeZone = value;
+                timeZone = value;
             }
         }
 
@@ -674,11 +535,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.title ?? string.Empty;
+                return title ?? string.Empty;
             }
             set
             {
-                this.title = value;
+                title = value;
             }
         }
 
@@ -692,13 +553,13 @@ namespace VcardLibrary
         /// </returns>
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(this.formattedName))
+            if (string.IsNullOrEmpty(formattedName))
             {
                 return base.ToString();
             }
             else
             {
-                return this.formattedName;
+                return formattedName;
             }
         }
 
@@ -718,11 +579,11 @@ namespace VcardLibrary
         {
             get
             {
-                return this.uniqueId ?? string.Empty;
+                return uniqueId ?? string.Empty;
             }
             set
             {
-                this.uniqueId = value;
+                uniqueId = value;
             }
         }
 
@@ -732,13 +593,7 @@ namespace VcardLibrary
         /// </summary>
         /// <seealso cref="vCardWebsite"/>
         /// <seealso cref="vCardWebsiteCollection"/>
-        public vCardWebsiteCollection Websites
-        {
-            get
-            {
-                return this.websites;
-            }
-        }
+        public vCardWebsiteCollection Websites { get; private set; }
 
     }
 }

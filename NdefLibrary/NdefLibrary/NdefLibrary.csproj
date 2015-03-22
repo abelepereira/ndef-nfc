@@ -75,10 +75,16 @@
     <Compile Include="Ndef\NdefTelRecord.cs" />
     <Compile Include="Ndef\NdefTextRecord.cs" />
     <Compile Include="Ndef\NdefUriRecord.cs" />
-    <Compile Include="Ndef\NdefVcardRecordBase.cs" />
+    <Compile Include="Ndef\NdefVcardRecord.cs" />
     <Compile Include="Ndef\NdefWpSettingsRecord.cs" />
     <Compile Include="Ndef\NdefRecordFlags.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VcardLibrary\VcardLibrary.csproj">
+      <Project>{fa79044c-87aa-469b-9c33-b95ebede7fdc}</Project>
+      <Name>VcardLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
