@@ -189,6 +189,9 @@
   <data name="ExInvalidCopy" xml:space="preserve">
     <value>Attempted to instantiate new record from incompatible record.</value>
   </data>
+  <data name="ExInvalidNdefMessageFormat" xml:space="preserve">
+    <value>The NDEF Message format is not valid.</value>
+  </data>
   <data name="ExLaunchAppArgumentsEmpty" xml:space="preserve">
     <value>Arguments for LaunchApp must not be empty.</value>
   </data>
