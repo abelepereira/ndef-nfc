@@ -60,7 +60,7 @@ namespace NdefLibrary.Ndef
 		///     Standardized type name formats, as defined by the NDEF record
 		///     specification from the Nfc Forum.
 		/// </summary>
-		public enum TypeNameFormatType
+		public enum TypeNameFormatType : byte
 		{
 			/// <summary>
 			///     Empty indicates that no type or payload is associated with this record.
@@ -109,7 +109,7 @@ namespace NdefLibrary.Ndef
 		};
 
 		private byte _flags;
-		private byte[] _id;
+		private byte[] _id = {}; // initialize to empty byte array (to comply with empty records)
 
 		/// <summary>
 		///     Byte array storing raw contents of the payload.
@@ -119,7 +119,7 @@ namespace NdefLibrary.Ndef
 		///     Direct byte array access provided as virtual
 		///     property can't be accessed from constructor.
 		/// </remarks>
-		protected byte[] _payload;
+		protected byte[] _payload = {}; // initialize to empty byte array (to comply with empty records)
 
 		/// <summary>
 		///     Byte array storing raw contents of the type.
@@ -129,16 +129,23 @@ namespace NdefLibrary.Ndef
 		///     Direct byte array access provided as virtual
 		///     property can't be accessed from constructor.
 		/// </remarks>
-		protected byte[] _type;
+		protected byte[] _type = {}; // initialize to empty byte array (to comply with empty records)
+
+		
 
 		/// <summary>
 		///     Create an empty record, not setting any information.
 		/// </summary>
 		public NdefRecord()
 		{
-			_type = new byte[] {}; // make proper initialization to be consistent with Empty records
-			_payload = new byte[] {}; // make proper initialization to be consistent with Empty records
+			_flags = (byte)(NdefRecordFlags.MessageBegin | NdefRecordFlags.MessageEnd | NdefRecordFlags.ShortRecord) | (byte) TypeNameFormatType.Empty; // default flags
 			TypeNameFormat = TypeNameFormatType.Empty;
+		}
+
+		public NdefRecord(NdefRecordFlags flags)
+		{
+			_flags = (byte)flags;
+			TypeNameFormat = (TypeNameFormatType)((byte)flags & 0x07);
 		}
 
 		/// <summary>
@@ -152,6 +159,8 @@ namespace NdefLibrary.Ndef
 		/// <param name="type">Type string.</param>
 		public NdefRecord(TypeNameFormatType tnf, byte[] type)
 		{
+			_flags = (byte)((byte)(NdefRecordFlags.MessageBegin | NdefRecordFlags.MessageEnd | NdefRecordFlags.ShortRecord) | (byte)tnf); // default flags
+
 			TypeNameFormat = tnf;
 			if (type != null)
 			{
@@ -167,6 +176,8 @@ namespace NdefLibrary.Ndef
 		/// <param name="other">Record to copy.</param>
 		public NdefRecord(NdefRecord other)
 		{
+			_flags = (byte)other.Flags;
+
 			TypeNameFormat = other.TypeNameFormat;
 			if (other.Type != null)
 			{
@@ -184,12 +195,12 @@ namespace NdefLibrary.Ndef
 		}
 
 		/// <summary>
-		///     Represents the record header flags corresponding to the first byte of each message record.
+		///     Gets the record header flags corresponding to the first byte of each message record.
 		/// </summary>
 		public NdefRecordFlags Flags
 		{
 			get { return (NdefRecordFlags) _flags; }
-			internal set { _flags = (byte) value; }
+			protected set { _flags = (byte) value; }
 		}
 
 		/// <summary>
@@ -225,7 +236,7 @@ namespace NdefLibrary.Ndef
 			{
 				if (value == null)
 				{
-					_id = null;
+					_id = new byte[] {};
 					return;
 				}
 				_id = new byte[value.Length];
@@ -250,6 +261,69 @@ namespace NdefLibrary.Ndef
 				_payload = new byte[value.Length];
 				Array.Copy(value, _payload, value.Length);
 			}
+		}
+
+		/// <summary>
+		///     Gets the record size in bytes.
+		/// </summary>
+		public int Length
+		{
+			get
+			{
+				return 1 /* flags */+
+				       1 /*type*/+
+				       (Flags.HasFlag(NdefRecordFlags.IdLength) ? Id.Length : 0) /* ID LENGTH is present */+
+				       (Flags.HasFlag(NdefRecordFlags.ShortRecord) ? 1 : 4) /* payload length*/+
+				       Type.Length +
+				       Id.Length +
+				       Payload.Length;
+			}
+
+
+			//	// SR (Short Record)?
+			//	if (record.Payload == null || record.Payload.Length < 255)
+			//		flags |= 0x10;
+
+			//	// Type length
+			//	if (record.Type != null) m.WriteByte((byte) record.Type.Length);
+			//	else m.WriteByte(0);
+
+			//	// Payload length 1 byte (SR) or 4 bytes
+			//	if (record.Payload == null)
+			//		m.WriteByte(0);
+			//	else
+			//	{
+			//		if ((flags & 0x10) != 0)
+			//		{
+			//			// SR
+			//			m.WriteByte((byte) record.Payload.Length);
+			//		}
+			//		else
+			//		{
+			//			// No SR (Short Record)
+			//			var payloadLength = (uint) record.Payload.Length;
+			//			m.WriteByte((byte) (payloadLength >> 24));
+			//			m.WriteByte((byte) (payloadLength >> 16));
+			//			m.WriteByte((byte) (payloadLength >> 8));
+			//			m.WriteByte((byte) (payloadLength & 0x000000ff));
+			//		}
+			//	}
+
+			//	// ID length
+			//	if (record.Id != null && (flags & 0x08) != 0)
+			//		m.WriteByte((byte) record.Id.Length);
+
+			//	// Type length
+			//	if (record.Type != null && record.Type.Length > 0)
+			//		m.Write(record.Type, 0, record.Type.Length);
+
+			//	// ID data
+			//	if (record.Id != null && record.Id.Length > 0)
+			//		m.Write(record.Id, 0, record.Id.Length);
+
+			//	// Payload data
+			//	if (record.Payload != null && record.Payload.Length > 0)
+			//		m.Write(record.Payload, 0, record.Payload.Length);
 		}
 
 		/// <summary>
@@ -303,8 +377,8 @@ namespace NdefLibrary.Ndef
 				return typeof (NdefLaunchAppRecord);
 			if (NdefAndroidAppRecord.IsRecordType(this))
 				return typeof (NdefAndroidAppRecord);
-			if (NdefVcardRecord.IsRecordType(this))
-				return typeof (NdefVcardRecord);
+			if (NdefVcardRecordBase.IsRecordType(this))
+				return typeof (NdefVcardRecordBase);
 			if (NdefIcalendarRecordBase.IsRecordType(this))
 				return typeof (NdefIcalendarRecordBase);
 			if (NdefBtSecureSimplePairingRecord.IsRecordType(this))
