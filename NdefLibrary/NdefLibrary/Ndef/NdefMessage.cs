@@ -35,320 +35,318 @@ using System.Runtime.InteropServices;
 
 namespace NdefLibrary.Ndef
 {
-    /// <summary>
-    /// An NDEF message is composed of one or more NDEF records.
-    /// </summary>
-    /// <remarks>
-    /// This class is essentially just a list of records, and provides
-    /// the necessary methods to convert all the records into a single
-    /// byte array that can be written to a tag and has the correct
-    /// flags set (e.g., message begin / end).
-    /// NdefMessage can also parse a byte array into an NDEF message,
-    /// separating and creating all the individual records out of the array.
-    /// 
-    /// From the NFC Forum specification document:
-    /// NFC Forum Data Exchange Format is a lightweight binary message 
-    /// format designed to encapsulate one or more application-defined 
-    /// payloads into a single message construct.
-    /// 
-    /// An NDEF message contains one or more NDEF records, each carrying 
-    /// a payload of arbitrary type and up to (2^32)-1 octets in size. 
-    /// Records can be chained together to support larger payloads. 
-    /// 
-    /// An NDEF record carries three parameters for describing its payload: 
-    /// the payload length, the payload type, and an optional payload identifier.
-    /// </remarks>
-    [ComVisible(false)]
-    public class NdefMessage : List<NdefRecord>
-    {
-        /// <summary>
-        /// Returns the NDEF message parsed from the contents of <paramref name="message"/>.
-        /// </summary>
-        /// <remarks>
-        /// The <paramref name="message"/> parameter is interpreted as the raw message format 
-        /// defined in the NFC Forum specifications.
-        /// </remarks>
-        /// <param name="message">Raw byte array containing the NDEF message, which consists
-        /// of 0 or more NDEF records.</param>
-        /// <exception cref="NdefException">Thrown if there is an error parsing the NDEF
-        /// message out of the byte array.</exception>
-        /// <returns>If parsing was successful, the NDEF message containing 0 or more NDEF
-        /// records.</returns>
-        public static NdefMessage FromByteArray(byte[] message)
-        {
-            var result = new NdefMessage();
+	/// <summary>
+	///     An NDEF message is composed of one or more NDEF records.
+	/// </summary>
+	/// <remarks>
+	///     This class is essentially just a list of records, and provides
+	///     the necessary methods to convert all the records into a single
+	///     byte array that can be written to a tag and has the correct
+	///     flags set (e.g., message begin / end).
+	///     NdefMessage can also parse a byte array into an NDEF message,
+	///     separating and creating all the individual records out of the array.
+	///     From the NFC Forum specification document:
+	///     NFC Forum Data Exchange Format is a lightweight binary message
+	///     format designed to encapsulate one or more application-defined
+	///     payloads into a single message construct.
+	///     An NDEF message contains one or more NDEF records, each carrying
+	///     a payload of arbitrary type and up to (2^32)-1 octets in size.
+	///     Records can be chained together to support larger payloads.
+	///     An NDEF record carries three parameters for describing its payload:
+	///     the payload length, the payload type, and an optional payload identifier.
+	/// </remarks>
+	[ComVisible(false)]
+	public class NdefMessage : List<NdefRecord>
+	{
+		/// <summary>
+		///     Returns the NDEF message parsed from the contents of <paramref name="message" />.
+		/// </summary>
+		/// <remarks>
+		///     The <paramref name="message" /> parameter is interpreted as the raw message format
+		///     defined in the NFC Forum specifications.
+		/// </remarks>
+		/// <param name="message">
+		///     Raw byte array containing the NDEF message, which consists
+		///     of 0 or more NDEF records.
+		/// </param>
+		/// <exception cref="NdefException">
+		///     Thrown if there is an error parsing the NDEF
+		///     message out of the byte array.
+		/// </exception>
+		/// <returns>
+		///     If parsing was successful, the NDEF message containing 0 or more NDEF
+		///     records.
+		/// </returns>
+		public static NdefMessage FromByteArray(byte[] message)
+		{
+			if (message == null) throw new ArgumentNullException("message");
+			if (message.Length == 0) throw new NdefException(NdefExceptionMessages.ExInvalidNdefMessageFormat);
 
-			// explanation: removed this because it doesn't comply with the standard. 
-			// Although most of platforms don't support multiple records on a message this is actully possible.
-			// Threfore header flags must be validated per record and not per message.
-			//var seenMessageBegin = false;
-			//var seenMessageEnd = false;
+			var result = new NdefMessage();
 
-            var partialChunk = new MemoryStream();
-            var record = new NdefRecord();
+			var seenMessageBegin = false;
+			var seenMessageEnd = false;
 
-            uint i = 0;
-            while (i < message.Length)
-            {
-                //Debug.WriteLine("Parsing byte[] to NDEF message. New record starts at {0}", i);
+			var partialChunk = new MemoryStream();
+			var record = new NdefRecord((NdefRecordFlags)message[0]);
 
-                // Parse flags out of NDEF message header
+			uint i = 0;
+			while (i < message.Length)
+			{
+				//Debug.WriteLine("Parsing byte[] to NDEF message. New record starts at {0}", i);
 
-	            var flags = (NdefRecordFlags)message[i];
+				// Parse flags out of NDEF message header
 
-				record.Flags = flags;
+				// The MB flag is a 1-bit field that when set indicates the start of an NDEF message.
+				bool recordBegin = record.Flags.HasFlag(NdefRecordFlags.MessageBegin); //(message[i] & 0x80) != 0;
+				// The ME flag is a 1-bit field that when set indicates the end of an NDEF message.
+				// Note, that in case of a chunked payload, the ME flag is set only in the terminating record chunk of that chunked payload.
+				bool recordEnd = record.Flags.HasFlag(NdefRecordFlags.MessageEnd); //(message[i] & 0x40) != 0;
+				// The CF flag is a 1-bit field indicating that this is either the first record chunk or a middle record chunk of a chunked payload.
+				bool cf = record.Flags.HasFlag(NdefRecordFlags.ChunkFlag); // (message[i] & 0x20) != 0;
+				// The SR flag is a 1-bit field indicating, if set, that the PAYLOAD_LENGTH field is a single octet.
+				bool sr = record.Flags.HasFlag(NdefRecordFlags.ShortRecord); // (message[i] & 0x10) != 0;
+				// The IL flag is a 1-bit field indicating, if set, that the ID_LENGTH field is present in the header as a single octet. 
+				// If the IL flag is zero, the ID_LENGTH field is omitted from the record header and the ID field is also omitted from the record.
+				bool il = record.Flags.HasFlag(NdefRecordFlags.IdLength); // (message[i] & 0x08) != 0;
 
-                // The MB flag is a 1-bit field that when set indicates the start of an NDEF message.
-	            bool recordBegin = flags.HasFlag(NdefRecordFlags.MessageBegin); //(message[i] & 0x80) != 0;
-                // The ME flag is a 1-bit field that when set indicates the end of an NDEF message.
-                // Note, that in case of a chunked payload, the ME flag is set only in the terminating record chunk of that chunked payload.
-	            bool recordEnd = flags.HasFlag(NdefRecordFlags.MessageEnd); //(message[i] & 0x40) != 0;
-                // The CF flag is a 1-bit field indicating that this is either the first record chunk or a middle record chunk of a chunked payload.
-	            bool cf = flags.HasFlag(NdefRecordFlags.ChunkFlag); // (message[i] & 0x20) != 0;
-                // The SR flag is a 1-bit field indicating, if set, that the PAYLOAD_LENGTH field is a single octet.
-	            bool sr = flags.HasFlag(NdefRecordFlags.ShortRecord); // (message[i] & 0x10) != 0;
-                // The IL flag is a 1-bit field indicating, if set, that the ID_LENGTH field is present in the header as a single octet. 
-                // If the IL flag is zero, the ID_LENGTH field is omitted from the record header and the ID field is also omitted from the record.
-	            bool il = flags.HasFlag(NdefRecordFlags.IdLength); // (message[i] & 0x08) != 0;
+				var typeNameFormat = (NdefRecord.TypeNameFormatType)((byte)record.Flags & 0x07);
 
-                var typeNameFormat = (NdefRecord.TypeNameFormatType)(message[i] & 0x07);
-
-                //Debug.WriteLine("ShortRecord: " + (sr ? "yes" : "no"));
-                //Debug.WriteLine("Id Length present: " + (il ? "yes" : "no"));
-
-				//TODO: validation must be per record not per message. Implementation is required
-				//if (recordBegin && seenMessageBegin)
-				//{
-				//	throw new NdefException(NdefExceptionMessages.ExMessageBeginLate);
-				//}
-				//if (!recordBegin && !seenMessageBegin)
-				//{
-				//	throw new NdefException(NdefExceptionMessages.ExMessageBeginMissing);
-				//}
-				//if (recordBegin)
-				//{
-				//	seenMessageBegin = true;
-				//}
-
-				//if (recordEnd && seenMessageEnd)
-				//{
-				//	throw new NdefException(NdefExceptionMessages.ExMessageEndLate);
-				//}
-				//if (recordEnd)
-				//{
-				//	seenMessageEnd = true;
-				//}
-
-	            if (cf && (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged) && partialChunk.Length > 0)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessagePartialChunk);
-                }
-
-                // Header length
-                int headerLength = 1;
-                headerLength += (sr) ? 1 : 4;
-                headerLength += (il) ? 1 : 0;
-
-                if (i + headerLength >= message.Length)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageUnexpectedEnd);
-                }
-
-                // Type length
-                byte typeLength = message[++i];
-
-                if ((typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged) && (typeLength != 0))
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageInvalidChunkedType);
-                }
-
-                // Payload length (short record?)
-                uint payloadLength;
-                if (sr)
-                {
-                    // Short record - payload length is a single octet
-                    payloadLength = message[++i];
-                }
-                else
-                {
-                    // No short record - payload length is four octets representing a 32 bit unsigned integer (MSB-first)
-                    payloadLength = (uint)((message[++i]) << 24);
-                    payloadLength |= (uint)((message[++i]) << 16);
-                    payloadLength |= (uint)((message[++i]) << 8);
-                    payloadLength |= (uint)((message[++i]) << 0);
-                }
-
-                // ID length
-                byte idLength;
-                idLength = (byte)(il ? message[++i] : 0);
-
-                // Total length of content (= type + payload + ID)
-                uint contentLength = typeLength + payloadLength + idLength;
-                if (i + contentLength >= message.Length)
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageUnexpectedEnd);
-                }
+				//Debug.WriteLine("ShortRecord: " + (sr ? "yes" : "no"));
+				//Debug.WriteLine("Id Length present: " + (il ? "yes" : "no"));
 
 
-                if ((typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged) && (idLength != 0))
-                {
-                    throw new NdefException(NdefExceptionMessages.ExMessageInvalidChunkedId);
-                }
+				if (recordBegin && seenMessageBegin)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageBeginLate);
+				}
+				if (!recordBegin && !seenMessageBegin)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageBeginMissing);
+				}
+				if (recordBegin)
+				{
+					seenMessageBegin = true;
+				}
 
-                if (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged)
-                {
-                    record.TypeNameFormat = typeNameFormat;
-                }
+				if (recordEnd && seenMessageEnd)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageEndLate);
+				}
+				if (recordEnd)
+				{
+					seenMessageEnd = true;
+				}
 
-                // Read type
-                if (typeLength > 0)
-                {
-                    record.Type = new byte[typeLength];
-                    Array.Copy(message, (int)(++i), record.Type, 0, typeLength);
-                    i += (uint)typeLength - 1;
-                }
+				if (cf && (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged) && partialChunk.Length > 0)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessagePartialChunk);
+				}
 
-                // Read ID
-                if (idLength > 0)
-                {
-                    record.Id = new byte[idLength];
-                    Array.Copy(message, (int)(++i), record.Id, 0, idLength);
-                    i += (uint)idLength - 1;
-                }
+				// Header length
+				int headerLength = 1;
+				headerLength += (sr) ? 1 : 4;
+				headerLength += (il) ? 1 : 0;
 
-                // Read payload
-                if (payloadLength > 0)
-                {
-                    var payload = new byte[payloadLength];
-                    Array.Copy(message, (int)(++i), payload, 0, (int)payloadLength);
+				if (i + headerLength >= message.Length)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageUnexpectedEnd);
+				}
 
-                    if (cf)
-                    {
-                        // chunked payload, except last
-                        partialChunk.Write(payload, 0, payload.Length);
-                    }
-                    else if (typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged)
-                    {
-                        // last chunk of chunked payload
-                        partialChunk.Write(payload, 0, payload.Length);
-                        record.Payload = partialChunk.ToArray();
-                    }
-                    else
-                    {
-                        // non-chunked payload
-                        record.Payload = payload;
-                    }
+				// Type length
+				byte typeLength = message[++i];
 
-                    i += payloadLength - 1;
-                }
+				if ((typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged) && (typeLength != 0))
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageInvalidChunkedType);
+				}
 
-                if (!cf)
-                {
-                    // Add record to the message and create a new record for the next loop iteration
-                    result.Add(record);
-                    record = new NdefRecord();
-                }
+				// Payload length (short record?)
+				uint payloadLength;
+				if (sr)
+				{
+					// Short record - payload length is a single octet
+					payloadLength = message[++i];
+				}
+				else
+				{
+					// No short record - payload length is four octets representing a 32 bit unsigned integer (MSB-first)
+					payloadLength = (uint) ((message[++i]) << 24);
+					payloadLength |= (uint) ((message[++i]) << 16);
+					payloadLength |= (uint) ((message[++i]) << 8);
+					payloadLength |= (uint) ((message[++i]) << 0);
+				}
 
-                if (!cf && flags.HasFlag(NdefRecordFlags.MessageEnd))
-                    break;
+				// ID length
+				byte idLength;
+				idLength = (byte) (il ? message[++i] : 0);
 
-                // move to start of next record
-                ++i;
-            }
+				// Total length of content (= type + payload + ID)
+				uint contentLength = typeLength + payloadLength + idLength;
+				if (i + contentLength >= message.Length)
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageUnexpectedEnd);
+				}
 
 
-			//Note: see note above
-			//if (!seenMessageBegin && !seenMessageEnd)
-			//{
-			//	throw new NdefException(NdefExceptionMessages.ExMessageNoBeginOrEnd);
-			//}
+				if ((typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged) && (idLength != 0))
+				{
+					throw new NdefException(NdefExceptionMessages.ExMessageInvalidChunkedId);
+				}
 
-            return result;
-        }
+				if (typeNameFormat != NdefRecord.TypeNameFormatType.Unchanged)
+				{
+					record.TypeNameFormat = typeNameFormat;
+				}
 
-        /// <summary>
-        /// Convert all the NDEF records currently stored in the NDEF message to a byte
-        /// array suitable for writing to a tag or sending to another device.
-        /// </summary>
-        /// <returns>The NDEF record(s) converted to an NDEF message.</returns>
-        public byte[] ToByteArray()
-        {
-            // Empty message: single empty record
-            if (Count == 0)
-            {
-                var msg = new NdefMessage { new NdefRecord() };
-                return msg.ToByteArray();
-            }
+				// Read type
+				if (typeLength > 0)
+				{
+					record.Type = new byte[typeLength];
+					Array.Copy(message, (int) (++i), record.Type, 0, typeLength);
+					i += (uint) typeLength - 1;
+				}
 
-            var m = new MemoryStream();
-            for (int i = 0; i < Count; i++)
-            {
-                var record = this[i];
+				// Read ID
+				if (idLength > 0)
+				{
+					record.Id = new byte[idLength];
+					Array.Copy(message, (int) (++i), record.Id, 0, idLength);
+					i += (uint) idLength - 1;
+				}
 
-                var flags = (byte)record.TypeNameFormat;
+				// Read payload
+				if (payloadLength > 0)
+				{
+					var payload = new byte[payloadLength];
+					Array.Copy(message, (int) (++i), payload, 0, (int) payloadLength);
 
-                // Message begin / end flags. If there is only one record in the message,
-                // both flags are set.
-                if (i == 0)
-                    flags |= 0x80;      // MB (message begin = first record in the message)
-                if (i == Count - 1)
-                    flags |= 0x40;      // ME (message end = last record in the message)
+					if (cf)
+					{
+						// chunked payload, except last
+						partialChunk.Write(payload, 0, payload.Length);
+					}
+					else
+						if (typeNameFormat == NdefRecord.TypeNameFormatType.Unchanged)
+						{
+							// last chunk of chunked payload
+							partialChunk.Write(payload, 0, payload.Length);
+							record.Payload = partialChunk.ToArray();
+						}
+						else
+						{
+							// non-chunked payload
+							record.Payload = payload;
+						}
 
-                // cf (chunked records) not supported yet
+					i += payloadLength - 1;
+				}
 
-                // SR (Short Record)?
-                if (record.Payload == null || record.Payload.Length < 255)
-                    flags |= 0x10;
+				if (!cf)
+				{
+					// Add record to the message and create a new record for the next loop iteration
+					result.Add(record);
+				}
 
-                // ID present?
-                if (record.Id != null && record.Id.Length > 0)
-                    flags |= 0x08;
+				if (!cf && record.Flags.HasFlag(NdefRecordFlags.MessageEnd))
+					break;
 
-                m.WriteByte(flags);
+				// move to start of next record and create a new record
+				record = new NdefRecord((NdefRecordFlags)message[++i]);
+			}
 
-                // Type length
-                if (record.Type != null) m.WriteByte((byte)record.Type.Length); else m.WriteByte(0);
 
-                // Payload length 1 byte (SR) or 4 bytes
-                if (record.Payload == null)
-                    m.WriteByte(0);
-                else
-                {
-                    if ((flags & 0x10) != 0)
-                    {
-                        // SR
-                        m.WriteByte((byte)record.Payload.Length);
-                    }
-                    else
-                    {
-                        // No SR (Short Record)
-                        var payloadLength = (uint)record.Payload.Length;
-                        m.WriteByte((byte)(payloadLength >> 24));
-                        m.WriteByte((byte)(payloadLength >> 16));
-                        m.WriteByte((byte)(payloadLength >> 8));
-                        m.WriteByte((byte)(payloadLength & 0x000000ff));
-                    }
-                }
+			if (!seenMessageBegin && !seenMessageEnd)
+			{
+				throw new NdefException(NdefExceptionMessages.ExMessageNoBeginOrEnd);
+			}
 
-                // ID length
-                if (record.Id != null && (flags & 0x08) != 0)
-                    m.WriteByte((byte)record.Id.Length);
+			return result;
+		}
 
-                // Type length
-                if (record.Type != null && record.Type.Length > 0)
-                    m.Write(record.Type, 0, record.Type.Length);
+		/// <summary>
+		///     Convert all the NDEF records currently stored in the NDEF message to a byte
+		///     array suitable for writing to a tag or sending to another device.
+		/// </summary>
+		/// <returns>The NDEF record(s) converted to an NDEF message.</returns>
+		public byte[] ToByteArray()
+		{
+			// Empty message: single empty record
+			if (Count == 0)
+			{
+				var msg = new NdefMessage {new NdefRecord()};
+				return msg.ToByteArray();
+			}
 
-                // ID data
-                if (record.Id != null && record.Id.Length > 0)
-                    m.Write(record.Id, 0, record.Id.Length);
+			var m = new MemoryStream();
+			for (int i = 0; i < Count; i++)
+			{
+				var record = this[i];
 
-                // Payload data
-                if (record.Payload != null && record.Payload.Length > 0)
-                    m.Write(record.Payload, 0, record.Payload.Length);
+				var flags = (byte) record.TypeNameFormat;
 
-            }
+				// Message begin / end flags. If there is only one record in the message,
+				// both flags are set.
+				if (i == 0)
+					flags |= 0x80; // MB (message begin = first record in the message)
+				if (i == Count - 1)
+					flags |= 0x40; // ME (message end = last record in the message)
 
-            return m.ToArray();
-        }
-    }
+				// cf (chunked records) not supported yet
+
+				// SR (Short Record)?
+				if (record.Payload == null || record.Payload.Length < 255)
+					flags |= 0x10;
+
+				// ID present?
+				if (record.Id != null && record.Id.Length > 0)
+					flags |= 0x08;
+
+				m.WriteByte(flags);
+
+				// Type length
+				if (record.Type != null) m.WriteByte((byte) record.Type.Length);
+				else m.WriteByte(0);
+
+				// Payload length 1 byte (SR) or 4 bytes
+				if (record.Payload == null)
+					m.WriteByte(0);
+				else
+				{
+					if ((flags & 0x10) != 0)
+					{
+						// SR
+						m.WriteByte((byte) record.Payload.Length);
+					}
+					else
+					{
+						// No SR (Short Record)
+						var payloadLength = (uint) record.Payload.Length;
+						m.WriteByte((byte) (payloadLength >> 24));
+						m.WriteByte((byte) (payloadLength >> 16));
+						m.WriteByte((byte) (payloadLength >> 8));
+						m.WriteByte((byte) (payloadLength & 0x000000ff));
+					}
+				}
+
+				// ID length
+				if (record.Id != null && (flags & 0x08) != 0)
+					m.WriteByte((byte) record.Id.Length);
+
+				// Type length
+				if (record.Type != null && record.Type.Length > 0)
+					m.Write(record.Type, 0, record.Type.Length);
+
+				// ID data
+				if (record.Id != null && record.Id.Length > 0)
+					m.Write(record.Id, 0, record.Id.Length);
+
+				// Payload data
+				if (record.Payload != null && record.Payload.Length > 0)
+					m.Write(record.Payload, 0, record.Payload.Length);
+			}
+
+			return m.ToArray();
+		}
+	}
 }
