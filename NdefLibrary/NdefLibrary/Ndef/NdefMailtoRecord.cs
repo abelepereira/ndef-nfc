@@ -108,6 +108,7 @@ namespace NdefLibrary.Ndef
         /// </summary>
         public NdefMailtoRecord()
         {
+			
         }
 
         /// <summary>

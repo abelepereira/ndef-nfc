@@ -42,7 +42,7 @@ namespace NdefLibrary.Ndef
     /// import / export a contact from the address book, use the derived classes
     /// in the NDEF Extension Library.
     /// </remarks>
-    public class NdefVcardRecord : NdefRecord
+    public class NdefVcardRecordBase : NdefRecord
     {
         /// <summary>
         /// Type of the NDEF MIME / vCard record.
@@ -52,7 +52,7 @@ namespace NdefLibrary.Ndef
         /// <summary>
         /// Create an empty MIME/vCard Record.
         /// </summary>
-        public NdefVcardRecord()
+        public NdefVcardRecordBase()
             : base(TypeNameFormatType.Mime, VcardType)
         {
         }
@@ -68,7 +68,7 @@ namespace NdefLibrary.Ndef
         /// <param name="other">Record to copy into this vCard record.</param>
         /// <exception cref="NdefException">Thrown if attempting to create a vCard record
         /// based on an incompatible record type.</exception>
-        public NdefVcardRecord(NdefRecord other)
+        public NdefVcardRecordBase(NdefRecord other)
             : base(other)
         {
             if (!IsRecordType(this))

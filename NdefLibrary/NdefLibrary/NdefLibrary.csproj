@@ -75,7 +75,7 @@
     <Compile Include="Ndef\NdefTelRecord.cs" />
     <Compile Include="Ndef\NdefTextRecord.cs" />
     <Compile Include="Ndef\NdefUriRecord.cs" />
-    <Compile Include="Ndef\NdefVcardRecord.cs" />
+    <Compile Include="Ndef\NdefVcardRecordBase.cs" />
     <Compile Include="Ndef\NdefWpSettingsRecord.cs" />
     <Compile Include="Ndef\NdefRecordFlags.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
