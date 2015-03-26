@@ -23,8 +23,11 @@
 **
 ****************************************************************************/
 
+using System;
+
 namespace NdefLibrary.Ndef
 {
+	[Flags]
 	public enum NdefRecordFlags : byte
 	{
 		/// <summary>
